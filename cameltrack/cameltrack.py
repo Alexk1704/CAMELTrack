@@ -9,10 +9,11 @@ from huggingface_hub import hf_hub_download
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from tracklab.datastruct import TrackingDataset
-from tracklab.pipeline import ImageLevelModule
-
-from cameltrack.train.callbacks import SimMetrics
+try:
+    from tracklab.datastruct import TrackingDataset
+    from tracklab.pipeline import ImageLevelModule
+except ImportError:  # tracking without tracklab (cameltrack as a library); training still needs it
+    from cameltrack.utils.tracklab_shim import ImageLevelModule, TrackingDataset
 
 log = logging.getLogger(__name__)
 
@@ -276,6 +277,8 @@ class CAMELTrack(ImageLevelModule):
     def train(self, tracking_dataset, pipeline, evaluator, datasets, *args, **kwargs):
         datasets = {dn: dv for dn, dv in datasets.items() if dn in self.datamodule_cfg.multi_dataset_training} if self.datamodule_cfg.multi_dataset_training else {}
         self.datamodule = instantiate(self.datamodule_cfg, tracking_dataset=tracking_dataset, pipeline=pipeline, datasets=datasets)
+
+        from cameltrack.train.callbacks import SimMetrics  # imports tracklab (cameltrack.train)
 
         save_best_loss = pl.callbacks.ModelCheckpoint(
             monitor="val/loss",

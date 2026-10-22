@@ -10,12 +10,29 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "tracklab",
+    # tracking (cameltrack.CAMEL / cameltrack.CAMELTrack); tracklab and KPR are optional, see below
+    "torch",
+    "torchvision",
+    "numpy",
+    "pandas",
+    "scipy",
     "transformers",
+    "huggingface_hub",
+    "hydra-core",
+    "omegaconf",
+    "pytorch-lightning",
     "pytorch-metric-learning",
+]
+
+[project.optional-dependencies]
+# `uv run --extra train tracklab -cn cameltrack` for the upstream workflow
+# the full upstream setup: tracklab pipeline, training, and KPR as tracklab's ReID module
+train = [
+    "tracklab",
     "ordered-set",
     "overrides",
     "wandb",
+    "torchmetrics",
     "torchreid@git+https://github.com/victorjoos/keypoint_promptable_reidentification",
 ]
 
@@ -29,3 +46,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["cameltrack*"]
 exclude = []
+
+[tool.setuptools.package-data]
+cameltrack = ["configs/*.yaml", "configs/**/*.yaml"]  # found by the tracklab plugin (utils/config_finder.py)
